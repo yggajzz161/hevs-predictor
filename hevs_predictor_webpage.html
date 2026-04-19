@@ -1,0 +1,378 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>HEVs 风险预测工具</title>
+  <style>
+    :root {
+      --bg: #f6f8fb;
+      --card: #ffffff;
+      --text: #1f2937;
+      --muted: #6b7280;
+      --line: #d1d5db;
+      --primary: #0f766e;
+      --primary-soft: #e6fffb;
+      --danger: #b91c1c;
+      --danger-soft: #fef2f2;
+      --ok: #065f46;
+      --ok-soft: #ecfdf5;
+      --shadow: 0 10px 30px rgba(15, 23, 42, 0.08);
+    }
+
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+      background: linear-gradient(180deg, #f8fafc 0%, #eef2f7 100%);
+      color: var(--text);
+    }
+
+    .wrap {
+      max-width: 980px;
+      margin: 0 auto;
+      padding: 32px 18px 64px;
+    }
+
+    .hero {
+      margin-bottom: 22px;
+    }
+
+    .title {
+      font-size: 34px;
+      font-weight: 800;
+      letter-spacing: 0.2px;
+      margin: 0 0 10px;
+    }
+
+    .subtitle {
+      margin: 0;
+      color: var(--muted);
+      font-size: 16px;
+      line-height: 1.7;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: 1.1fr 0.9fr;
+      gap: 22px;
+      align-items: start;
+    }
+
+    .card {
+      background: var(--card);
+      border: 1px solid rgba(209, 213, 219, 0.7);
+      border-radius: 20px;
+      box-shadow: var(--shadow);
+      padding: 24px;
+    }
+
+    .card h2 {
+      margin: 0 0 18px;
+      font-size: 22px;
+    }
+
+    .field {
+      margin-bottom: 18px;
+    }
+
+    .field label {
+      display: block;
+      font-weight: 700;
+      margin-bottom: 8px;
+    }
+
+    .hint {
+      color: var(--muted);
+      font-size: 13px;
+      margin-top: 6px;
+      line-height: 1.5;
+    }
+
+    input[type="number"] {
+      width: 100%;
+      padding: 14px 14px;
+      border-radius: 14px;
+      border: 1px solid var(--line);
+      font-size: 16px;
+      outline: none;
+      transition: border-color 0.2s, box-shadow 0.2s;
+      background: #fff;
+    }
+
+    input[type="number"]:focus {
+      border-color: var(--primary);
+      box-shadow: 0 0 0 4px rgba(15, 118, 110, 0.12);
+    }
+
+    .actions {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+      margin-top: 10px;
+    }
+
+    button {
+      appearance: none;
+      border: 0;
+      border-radius: 14px;
+      padding: 13px 18px;
+      font-size: 15px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: transform 0.04s ease, opacity 0.2s ease;
+    }
+
+    button:active { transform: translateY(1px); }
+
+    .btn-primary {
+      background: var(--primary);
+      color: #fff;
+    }
+
+    .btn-secondary {
+      background: #e5e7eb;
+      color: #111827;
+    }
+
+    .result-panel {
+      min-height: 280px;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      border-radius: 999px;
+      padding: 8px 14px;
+      font-weight: 800;
+      font-size: 14px;
+      width: fit-content;
+    }
+
+    .badge-high {
+      color: var(--danger);
+      background: var(--danger-soft);
+    }
+
+    .badge-low {
+      color: var(--ok);
+      background: var(--ok-soft);
+    }
+
+    .prob-box {
+      border-radius: 18px;
+      background: #f8fafc;
+      border: 1px solid #e5e7eb;
+      padding: 18px;
+    }
+
+    .prob-label {
+      font-size: 14px;
+      color: var(--muted);
+      margin-bottom: 8px;
+    }
+
+    .prob-value {
+      font-size: 40px;
+      font-weight: 800;
+      line-height: 1;
+      margin-bottom: 14px;
+    }
+
+    .bar {
+      width: 100%;
+      height: 16px;
+      background: #e5e7eb;
+      border-radius: 999px;
+      overflow: hidden;
+    }
+
+    .bar-fill {
+      height: 100%;
+      width: 0%;
+      background: linear-gradient(90deg, #0ea5e9 0%, #0f766e 100%);
+      transition: width 0.35s ease;
+    }
+
+    .info-list {
+      margin: 0;
+      padding-left: 18px;
+      color: var(--muted);
+      line-height: 1.75;
+      font-size: 14px;
+    }
+
+    .formula {
+      padding: 14px 16px;
+      border-radius: 16px;
+      background: #f8fafc;
+      border: 1px solid #e5e7eb;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      font-size: 13px;
+      line-height: 1.7;
+      white-space: pre-wrap;
+      word-break: break-word;
+    }
+
+    .footer-note {
+      margin-top: 22px;
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.7;
+    }
+
+    @media (max-width: 860px) {
+      .grid {
+        grid-template-columns: 1fr;
+      }
+      .title {
+        font-size: 28px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="hero">
+      <h1 class="title">HEVs 风险预测工具</h1>
+      <p class="subtitle">输入门静脉流速（PVV）和脾脏体积（SV），即可根据最终 mixed model 计算高危食管静脉曲张（HEVs）的预测概率，并按 cutoff = 0.30 进行风险分类。</p>
+    </div>
+
+    <div class="grid">
+      <section class="card">
+        <h2>输入参数</h2>
+
+        <div class="field">
+          <label for="pvv">PVV（门静脉流速，cm/s）</label>
+          <input id="pvv" type="number" step="0.1" placeholder="例如：13.5" />
+          <div class="hint">请输入患者的门静脉流速，单位为 cm/s。</div>
+        </div>
+
+        <div class="field">
+          <label for="sv">SV（脾脏体积，cm³）</label>
+          <input id="sv" type="number" step="0.1" placeholder="例如：500" />
+          <div class="hint">请输入患者的脾脏体积，单位为 cm³。</div>
+        </div>
+
+        <div class="actions">
+          <button class="btn-primary" id="calcBtn">开始预测</button>
+          <button class="btn-secondary" id="resetBtn">重置</button>
+        </div>
+
+        <div class="footer-note">
+          使用模型：PVV + rcs(SV, 3) mixed model。<br />
+          节点（knots）：241.98092、439.12097、777.71557。<br />
+          预测阈值：0.30。
+        </div>
+      </section>
+
+      <section class="card result-panel">
+        <h2>预测结果</h2>
+
+        <div id="resultBadge" class="badge badge-low">等待输入</div>
+
+        <div class="prob-box">
+          <div class="prob-label">HEVs 预测概率</div>
+          <div id="probValue" class="prob-value">—</div>
+          <div class="bar"><div id="barFill" class="bar-fill"></div></div>
+        </div>
+
+        <div class="field">
+          <label>判定说明</label>
+          <ul class="info-list">
+            <li>当预测概率 ≥ 0.30 时，判定为 <strong>Predicted HEVs</strong>。</li>
+            <li>当预测概率 &lt; 0.30 时，判定为 <strong>Predicted non-HEVs</strong>。</li>
+            <li>本工具用于无创风险评估，不能替代临床判断和内镜检查。</li>
+          </ul>
+        </div>
+
+        <div class="field">
+          <label>模型公式</label>
+          <div class="formula" id="formulaText"></div>
+        </div>
+      </section>
+    </div>
+  </div>
+
+  <script>
+    const formula = `LP = -2.1986338
+     - 0.78599659 × PVV
+     + 0.030179728 × SV
+     - 9.5882394×10^-8 × max(SV - 241.98092, 0)^3
+     + 1.5170803×10^-7 × max(SV - 439.12097, 0)^3
+     - 5.5825639×10^-8 × max(SV - 777.71557, 0)^3
+
+P = 1 / (1 + e^(-LP))`;
+
+    document.getElementById('formulaText').textContent = formula;
+
+    function predictHEVs(PVV, SV) {
+      const lp =
+        -2.1986338
+        - 0.78599659 * PVV
+        + 0.030179728 * SV
+        - 9.5882394e-08 * Math.pow(Math.max(SV - 241.98092, 0), 3)
+        + 1.5170803e-07 * Math.pow(Math.max(SV - 439.12097, 0), 3)
+        - 5.5825639e-08 * Math.pow(Math.max(SV - 777.71557, 0), 3);
+
+      const prob = 1 / (1 + Math.exp(-lp));
+      const highRisk = prob >= 0.30;
+      return { lp, prob, highRisk };
+    }
+
+    const pvvInput = document.getElementById('pvv');
+    const svInput = document.getElementById('sv');
+    const calcBtn = document.getElementById('calcBtn');
+    const resetBtn = document.getElementById('resetBtn');
+    const probValue = document.getElementById('probValue');
+    const barFill = document.getElementById('barFill');
+    const resultBadge = document.getElementById('resultBadge');
+
+    function renderResult() {
+      const PVV = parseFloat(pvvInput.value);
+      const SV = parseFloat(svInput.value);
+
+      if (Number.isNaN(PVV) || Number.isNaN(SV)) {
+        alert('请输入有效的 PVV 和 SV 数值。');
+        return;
+      }
+
+      const { prob, highRisk } = predictHEVs(PVV, SV);
+      const percent = (prob * 100).toFixed(1);
+
+      probValue.textContent = percent + '%';
+      barFill.style.width = Math.max(0, Math.min(100, prob * 100)) + '%';
+
+      if (highRisk) {
+        resultBadge.className = 'badge badge-high';
+        resultBadge.textContent = 'Predicted HEVs（高风险）';
+      } else {
+        resultBadge.className = 'badge badge-low';
+        resultBadge.textContent = 'Predicted non-HEVs（低风险）';
+      }
+    }
+
+    function resetForm() {
+      pvvInput.value = '';
+      svInput.value = '';
+      probValue.textContent = '—';
+      barFill.style.width = '0%';
+      resultBadge.className = 'badge badge-low';
+      resultBadge.textContent = '等待输入';
+    }
+
+    calcBtn.addEventListener('click', renderResult);
+    resetBtn.addEventListener('click', resetForm);
+
+    [pvvInput, svInput].forEach(el => {
+      el.addEventListener('keydown', function(e) {
+        if (e.key === 'Enter') renderResult();
+      });
+    });
+  </script>
+</body>
+</html>
